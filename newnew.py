@@ -14,7 +14,7 @@ font = pygame.font.Font(pygame.font.get_default_font(), 20)
 
 global_id = 0
 
-blood_images = [pygame.image.load("C:\Programming\Python\Pygame/graphics/blood1.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/blood2.png")]
+blood_images = [pygame.image.load("graphics/blood1.png"), pygame.image.load("graphics/blood2.png")]
 
 objects = []
 
@@ -64,7 +64,7 @@ class Weapon:
 
 class Cursor:
     def __init__(self):
-        self.image = pygame.image.load("C:\Programming\Python\Pygame/graphics/cursor.png")
+        self.image = pygame.image.load("graphics/cursor.png")
         self.rect = self.image.get_rect()
 
 class Instance:
@@ -95,7 +95,7 @@ class Tile:
         self.instance.objects.append(self)
 class Player:
     def __init__(self):
-        self.image = pygame.image.load("C:\Programming\Python\Pygame/graphics/player.png")
+        self.image = pygame.image.load("graphics/player.png")
         self.instance = world
         self.rect = self.image.get_rect(center=(650, 475))
         self.inventory = []
@@ -279,23 +279,6 @@ class Main:
                 if self.attack_time == 0:
                     player.hp -= self.dmg
                     self.attack_time = self.attack_speed
-        if self.obj == bird:
-            if self.rect.y == 175:
-                if self.rect.x - 20 > player.rect.x:
-                    self.rect.x -= self.move_speed
-                    self.hp_bar.x -= self.move_speed
-                    self.image = self.left
-                if self.rect.x + 20 < player.rect.x:
-                    self.rect.x += self.move_speed
-                    self.hp_bar.x += self.move_speed
-                    self.image = self.right
-                if random.randint(0, 120) == 0:
-                    if len(old) > 0:
-                        old[0] = Bullet(math.radians(90), 10, self.rect.center, self.instance, pygame.image.load("C:\Programming\Python\Pygame/graphics/bullet.png"), 5, self)
-                        old.pop(0)
-                    else:
-                        globals()[f"Object{global_id}"] = Bullet(math.radians(90), 10, self.rect.center, self.instance, pygame.image.load("C:\Programming\Python\Pygame/graphics/bullet.png"), 5, self)
-                        global_id += 1
             else:
                 self.rect.y = 175
                 self.hp_bar.y = 175
@@ -319,18 +302,17 @@ move_speed = 3
 
 world = Instance(45, (92, 27, 7), (150, 100, 50), 2)
 
-pistol1 = Weapon(30, 35, pygame.image.load("C:\Programming\Python\Pygame/graphics/pistol.png"), False, world, False, 4, 250, 475, "Pistol")
+pistol1 = Weapon(30, 35, pygame.image.load("graphics/pistol.png"), False, world, False, 4, 250, 475, "Pistol")
 
-pistol = Weapon(30, 35, pygame.image.load("C:\Programming\Python\Pygame/graphics/pistol.png"), True, world, True, 4, 250, 475, "Pistol")
-rifle = Weapon(40, 20, pygame.image.load("C:\Programming\Python\Pygame/graphics/rifle.png"), True, world, True, 5, 275, 475, "Rifle")
-sniper = Weapon(50, 80, pygame.image.load("C:\Programming\Python\Pygame/graphics/sniper.png"), True, world, True, 20, 450, 475, "Sniper Rifle")
-mini_gun = Weapon(40, 10, pygame.image.load("C:\Programming\Python\Pygame/graphics/mini.png"), True, world, True, 3, 100, 100, "Mini Gun")
+pistol = Weapon(30, 35, pygame.image.load("graphics/pistol.png"), True, world, True, 4, 250, 475, "Pistol")
+rifle = Weapon(40, 20, pygame.image.load("graphics/rifle.png"), True, world, True, 5, 275, 475, "Rifle")
+sniper = Weapon(50, 80, pygame.image.load("graphics/sniper.png"), True, world, True, 20, 450, 475, "Sniper Rifle")
+mini_gun = Weapon(40, 10, pygame.image.load("graphics/mini.png"), True, world, True, 3, 100, 100, "Mini Gun")
 
-enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("C:\Programming\Python\Pygame/graphics/enemy_left.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10]], True, None)
-enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("C:\Programming\Python\Pygame/graphics/snail_left.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3]], True, None)
-cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("C:\Programming\Python\Pygame/graphics/cow_left.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10]], True, None)
-bird = Enemy(20, 200 if random.randint(1, 2) == 1 else 1200, 175, pygame.image.load("C:\Programming\Python\Pygame/graphics/bird_left.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/bird_right.png"), world, 3, 3, 20, [[pistol, 15], [rifle, 10]], True, None)
-elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("C:\Programming\Python\Pygame/graphics/elephant_left.png"), pygame.image.load("C:\Programming\Python\Pygame/graphics/elephant.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20]], True, None)
+enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10]], True, None)
+enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3]], True, None)
+cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10]], True, None)
+elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20]], True, None)
 
 
 
@@ -423,10 +405,10 @@ while True:
             rel_x, rel_y = mouse_x - player.rect.x, mouse_y - player.rect.y
             angle = math.atan2(rel_y, rel_x)
             if len(old) > 0:
-                bullet = old[0] = Bullet(angle, 20, player.rect.center, player.instance, pygame.image.load("C:\Programming\Python\Pygame/graphics/bullet.png"), player.weapon.dmg, player)
+                bullet = old[0] = Bullet(angle, 20, player.rect.center, player.instance, pygame.image.load("graphics/bullet.png"), player.weapon.dmg, player)
                 old.pop(0)
             else:
-                bullet = globals()[f"Object{global_id}"] = Bullet(angle, 20, player.rect.center, player.instance, pygame.image.load("C:\Programming\Python\Pygame/graphics/bullet.png"), player.weapon.dmg, player)
+                bullet = globals()[f"Object{global_id}"] = Bullet(angle, 20, player.rect.center, player.instance, pygame.image.load("graphics/bullet.png"), player.weapon.dmg, player)
                 global_id += 1
             angle = (180 / math.pi) * -math.atan2(rel_y, rel_x)
             bullet.image = pygame.transform.rotozoom(bullet.image, angle, 1)
