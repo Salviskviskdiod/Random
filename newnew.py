@@ -1,4 +1,4 @@
-import pygame, sys, math, random
+import pygame   , sys, math, random
 
 pygame.init()
 
@@ -60,7 +60,7 @@ class Weapon:
         self.dmg = dmg
         objects.append(self)
         instance.objects.append(self)
-        self.despawn_time = 600
+        self.despawn_time = 1200
 
 class Cursor:
     def __init__(self):
@@ -111,6 +111,16 @@ class Wave:
         self.end = end
         self.done = False
         objects.append(self)
+class Health:
+    def __init__(self, health, image, blueprint, instance, x, y):
+        self.health = health
+        self.image = image
+        self.instance = instance
+        self.rect = self.image.get_rect(center=(x, y))
+        self.blueprint = blueprint
+        self.despawn_time = 1200
+        objects.append(self)
+        self.instance.objects.append(self)
 def GetNextWave(current_wave):
     current_wave.done = True
     for x in objects:
@@ -129,6 +139,9 @@ class Main:
         for self in instance.objects:
             if self.__class__ == Blood:
                 screen.blit(self.image, (self.rect.center))
+            if self.__class__ == Health:
+                if not self.blueprint:
+                    screen.blit(self.image, (self.rect.x, self.rect.y))
         for self in instance.objects:
             if self.__class__ == Weapon:
                 if self.ground and not self.blueprint:
@@ -192,6 +205,12 @@ class Main:
                     objects.remove(self)
                     self.instance.objects.remove(self)
                     old.append(self)
+        for x in player.instance.objects:
+            if x.__class__ == Health and x.rect.colliderect(player.rect):
+                objects.remove(x)
+                x.instance.objects.remove(x)
+                player.hp += x.health
+                if player.hp > player.max_hp: player.hp = player.max_hp
         player_hp_text = font.render(f"Hp: {player.hp} / {player.max_hp}", True, (255, 0, 0))
         screen.blit(player_hp_text, (50, 50))
         time_text = font.render(f"Time: {time}", True, (255, 255, 255))
@@ -252,10 +271,10 @@ class Main:
                             old.append(collison)
                             for x in collison.drop:
                                 if random.randint(1, 100) <= x[1]:
-                                    if len(old) > 0:
-                                        old[0] = Weapon(x[0].bullet_speed, x[0].max_fpb, x[0].image, False, player.instance, True, x[0].dmg, collison.rect.x, collison.rect.y, x[0].name)
-                                        old.pop(0)
-                                    globals()[f"Object{global_id}"] = Weapon(x[0].bullet_speed, x[0].max_fpb, x[0].image, False, player.instance, True, x[0].dmg, collison.rect.x, collison.rect.y, x[0].name)
+                                    if x[0].__class__ == Weapon:
+                                        globals()[f"Object{global_id}"] = Weapon(x[0].bullet_speed, x[0].max_fpb, x[0].image, False, player.instance, True, x[0].dmg, collison.rect.x, collison.rect.y, x[0].name)
+                                    elif x[0].__class__ == Health:
+                                        globals()[f"Object{global_id}"] = Health(x[0].health, x[0].image, False, x[0].instance, collison.rect.x, collison.rect.y)
                                     global_id += 1
                                     break
                     elif collison == player and not bullet.attacker == player and collison.rect.colliderect(bullet.rect) and bullet in player.instance.objects:
@@ -265,7 +284,7 @@ class Main:
                         collison.hp -= bullet.dmg
     def Enemy_ai(self):
         global global_id
-        if self.obj == enemy1 or self.obj == enemy2 or self.obj == cow:
+        if self.__class__ == Enemy:
             if self.rect.colliderect(player.rect) == False:
                 if self.rect.x > player.rect.x:
                     self.rect.x -= self.move_speed
@@ -309,8 +328,10 @@ rifle = Weapon(40, 20, pygame.image.load("graphics/rifle.png"), True, world, Tru
 sniper = Weapon(50, 80, pygame.image.load("graphics/sniper.png"), True, world, True, 20, 450, 475, "Sniper Rifle")
 mini_gun = Weapon(40, 10, pygame.image.load("graphics/mini.png"), True, world, True, 3, 100, 100, "Mini Gun")
 
+health1 = Health(30, pygame.image.load("graphics/health1.png"), True, world, 0, 0)
+
 enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10]], True, None)
-enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3]], True, None)
+enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 100]], True, None)
 cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10]], True, None)
 elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20]], True, None)
 
@@ -333,7 +354,7 @@ button_1 = False
 def move_player(xy, plus_minus):
     global global_id
     for x in objects:
-        if x.__class__ == Tile or x.__class__ == Weapon or x.__class__ == Enemy or x.__class__ == Blood:
+        if x.__class__ == Tile or x.__class__ == Weapon or x.__class__ == Enemy or x.__class__ == Blood or x.__class__ == Health:
             if xy == "x" and plus_minus == "plus": 
                 x.rect.x += move_speed
                 if x.__class__ == Enemy: x.hp_bar.x += move_speed
@@ -346,7 +367,7 @@ def move_player(xy, plus_minus):
             move = True
     if not move:
         for x in objects:
-            if x.__class__ == Tile or x.__class__ == Weapon or x.__class__ == Enemy or x.__class__ == Blood:
+            if x.__class__ == Tile or x.__class__ == Weapon or x.__class__ == Enemy or x.__class__ == Blood or x.__class__ == Health:
                 if xy == "x" and plus_minus == "plus":
                     x.rect.x -= move_speed
                     if x.__class__ == Enemy: x.hp_bar.x -= move_speed
