@@ -14,7 +14,7 @@ font = pygame.font.Font(pygame.font.get_default_font(), 20)
 
 global_id = 0
 
-blood_images = [pygame.image.load("graphics/blood1.png"), pygame.image.load("graphics/blood2.png")]
+blood_images = [pygame.image.load("graphics/blood3.png"), pygame.image.load("graphics/blood4.png")]
 
 objects = []
 
@@ -123,12 +123,13 @@ class Health:
         self.instance.objects.append(self)
 def GetNextWave(current_wave):
     current_wave.done = True
-    for x in objects:
-        if x.__class__ == Wave and x.num == current_wave.num + 1:
-            for y in objects:
-                if y.__class__ == Enemy and not y.blueprint:
-                    return current_wave
-            return x
+    if not current_wave.end == []:
+        for x in objects:
+            if x.__class__ == Wave and x.num == current_wave.num + 1:
+                for y in objects:
+                    if y.__class__ == Enemy and not y.blueprint:
+                        return current_wave
+                return x
     return current_wave
 class Main:
     def Draw_Instance(instance):
@@ -191,9 +192,13 @@ class Main:
                     if self.despawn_time < 1:
                         objects.remove(self)
                         self.instance.objects.remove(self)
-                        old.append(self)
                 if self.rect.y < 450:
                     self.rect.y += 1
+            if self.__class__ == Health:
+                self.despawn_time -= 1
+                if self.despawn_time < 1:
+                    objects.remove(self)
+                    self.instance.objects.remove(self)
         for self in objects:
             if self.__class__ == Enemy:
                 if self.attack_time > 0:
@@ -206,7 +211,7 @@ class Main:
                     self.instance.objects.remove(self)
                     old.append(self)
         for x in player.instance.objects:
-            if x.__class__ == Health and x.rect.colliderect(player.rect):
+            if x.__class__ == Health and x.rect.colliderect(player.rect) and not player.hp >= player.max_hp:
                 objects.remove(x)
                 x.instance.objects.remove(x)
                 player.hp += x.health
@@ -221,6 +226,11 @@ class Main:
         screen.blit(wave_time_text, (700, 100))
         time += 1
         if current_wave.time_left < 1:
+            for x in current_wave.end:
+                for i in range(x[1]):
+                    local_enemy = x[0]
+                    globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy)
+                    global_id += 1
             current_wave = GetNextWave(current_wave)
         if current_wave.done == False:
             current_wave.time_left -= 1
@@ -258,13 +268,14 @@ class Main:
                         collison.hp -= bullet.dmg
                         temp = round(collison.hp / collison.max_hp * 50)
                         collison.hp_bar.width = temp
-                        for i in range(random.randint(1, 3)):
-                            if len(old) > 0:
-                                old[0] = Blood(blood_images[random.randint(0, len(blood_images) - 1)], player.instance, collison.rect.x + random.randint(-50, 50), collison.rect.y + random.randint(-50, 50))
-                                old.pop(0)
-                            else:
-                                globals()[f"Objects{global_id}"] = Blood(blood_images[random.randint(0, len(blood_images) - 1)], player.instance, collison.rect.x + random.randint(-50, 50), collison.rect.y + random.randint(-50, 50))
-                                global_id += 1
+                        if random.randint(1, 3) == 1:
+                            for i in range(random.randint(2, 4)):
+                                if len(old) > 0:
+                                    old[0] = Blood(blood_images[random.randint(0, len(blood_images) - 1)], player.instance, collison.rect.x + random.randint(-50, 50), collison.rect.y + random.randint(-50, 50))
+                                    old.pop(0)
+                                else:
+                                    globals()[f"Objects{global_id}"] = Blood(blood_images[random.randint(0, len(blood_images) - 1)], player.instance, collison.rect.x + random.randint(-50, 50), collison.rect.y + random.randint(-50, 50))
+                                    global_id += 1
                         if collison.hp <= 0:
                             objects.remove(collison)
                             collison.instance.objects.remove(collison)
@@ -329,11 +340,13 @@ sniper = Weapon(50, 80, pygame.image.load("graphics/sniper.png"), True, world, T
 mini_gun = Weapon(40, 10, pygame.image.load("graphics/mini.png"), True, world, True, 3, 100, 100, "Mini Gun")
 
 health1 = Health(30, pygame.image.load("graphics/health1.png"), True, world, 0, 0)
+health2 = Health(100, pygame.image.load("graphics/health1.png"), True, world, 0, 0)
 
-enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10]], True, None)
-enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 100]], True, None)
-cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10]], True, None)
-elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20]], True, None)
+enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10], [health1, 15]], True, None)
+enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 15]], True, None)
+cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10], [health1, 25]], True, None)
+elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20], [health1, 100]], True, None)
+elephant = Enemy(500, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/thing_left.png"), pygame.image.load("graphics/thing_right.png"), world, 1, 40, 140, [[pistol, 5], [rifle, 10], [mini_gun, 40], [health2, 100]], True, None)
 
 
 
@@ -342,6 +355,7 @@ wave2 = Wave(2, [[enemy2, 1, 40], [enemy1, 41, 85], [cow, 86, 100]], 3000, [])
 wave3 = Wave(3, [[enemy2, 1, 40], [enemy1, 41, 80], [cow, 81, 100]], 3000, [[elephant, 1]])
 wave4 = Wave(4, [[enemy2, 1, 34], [enemy1, 35, 70], [cow, 71, 95], [elephant, 96, 100]], 4000, [])
 wave5 = Wave(5, [[enemy2, 1, 30], [enemy1, 31, 65], [cow, 66, 92], [elephant, 93, 100]], 4000, [])
+wave6 = Wave(6, [[enemy2, 1, 20], [enemy1, 21, 40], [cow, 41, 87], [elephant, 88, 100]], 4200, [])
 
 current_wave = wave1
 
