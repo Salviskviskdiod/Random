@@ -6,6 +6,8 @@ old = []
 
 screen = pygame.display.set_mode((1280, 650))
 
+pygame.font.init()
+
 clock = pygame.time.Clock()
 
 time = 0
@@ -123,13 +125,12 @@ class Health:
         self.instance.objects.append(self)
 def GetNextWave(current_wave):
     current_wave.done = True
-    if not current_wave.end == []:
-        for x in objects:
-            if x.__class__ == Wave and x.num == current_wave.num + 1:
-                for y in objects:
-                    if y.__class__ == Enemy and not y.blueprint:
-                        return current_wave
-                return x
+    for x in objects:
+        if x.__class__ == Wave and x.num == current_wave.num + 1:
+            for y in objects:
+                if y.__class__ == Enemy and not y.blueprint:
+                    return current_wave
+            return x
     return current_wave
 class Main:
     def Draw_Instance(instance):
@@ -226,11 +227,12 @@ class Main:
         screen.blit(wave_time_text, (700, 100))
         time += 1
         if current_wave.time_left < 1:
-            for x in current_wave.end:
-                for i in range(x[1]):
-                    local_enemy = x[0]
-                    globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy)
-                    global_id += 1
+            if current_wave.done == False:
+                for x in current_wave.end:
+                    for i in range(x[1]):
+                        local_enemy = x[0]
+                        globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy)
+                        global_id += 1
             current_wave = GetNextWave(current_wave)
         if current_wave.done == False:
             current_wave.time_left -= 1
@@ -346,7 +348,7 @@ enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image
 enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 15]], True, None)
 cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10], [health1, 25]], True, None)
 elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20], [health1, 100]], True, None)
-elephant = Enemy(500, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/thing_left.png"), pygame.image.load("graphics/thing_right.png"), world, 1, 40, 140, [[pistol, 5], [rifle, 10], [mini_gun, 40], [health2, 100]], True, None)
+thing = Enemy(500, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/thing_left.png"), pygame.image.load("graphics/thing_right.png"), world, 1, 40, 140, [[pistol, 5], [rifle, 10], [mini_gun, 40], [health2, 100]], True, None)
 
 
 
