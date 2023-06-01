@@ -29,18 +29,24 @@ class Blood:
         instance.objects.append(self)
         self.time = 1000
 class Enemy:
-    def __init__(self, hp, x, y, left, right, instance, move_speed, dmg, attack_speed, drop, blueprint, obj):
+    def __init__(self, hp, x, y, left, right, instance, move_speed, dmg, attack_speed, drop, blueprint, obj, boss, name):
         self.obj = obj
+        self.boss = boss
         self.blueprint = blueprint
         self.move_speed = move_speed
         self.hp = hp
         self.max_hp = hp
         self.left = left
+        self.name = name
         self.right = right
         self.image = left
         self.rect = self.image.get_rect(center = (x, y))
-        self.hp_bar = pygame.Rect(self.rect.x, self.rect.height - 20, 50, 8)
-        self.hp_bar.center = (self.rect.center[0], self.rect.y - 15)
+        if boss:
+            self.hp_bar = pygame.Rect(self.rect.x, self.rect.height - 20, 300, 50)
+            self.hp_bar.center = (425, 150)
+        else:
+            self.hp_bar = pygame.Rect(self.rect.x, self.rect.height - 20, 50, 8)
+            self.hp_bar.center = (self.rect.center[0], self.rect.y - 15)
         objects.append(self)
         self.instance = instance
         self.dmg = dmg
@@ -225,13 +231,18 @@ class Main:
         screen.blit(weapon_name_text, (700, 50))
         wave_time_text = font.render(f"Current Wave: {current_wave.num}     Time Left: {current_wave.time_left}", True, (255, 255, 255))
         screen.blit(wave_time_text, (700, 100))
+        for x in objects:
+            if x.__class__ == Enemy and x.boss and not x.blueprint:
+                boss_name = font.render(x.name, True, (255, 255, 255))
+                screen.blit(boss_name, (425, 75))
+                break
         time += 1
         if current_wave.time_left < 1:
             if current_wave.done == False:
                 for x in current_wave.end:
                     for i in range(x[1]):
                         local_enemy = x[0]
-                        globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy)
+                        globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy, local_enemy.boss, local_enemy.name)
                         global_id += 1
             current_wave = GetNextWave(current_wave)
         if current_wave.done == False:
@@ -246,7 +257,7 @@ class Main:
                 for x in current_wave.enemies:
                     if ra >= x[1] and ra <= x[2]:
                         local_enemy = x[0]
-                        globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy)
+                        globals()[f"Objects{global_id}"] = Enemy(local_enemy.hp, 200 if random.randint(1, 2) == 1 else 1200, 475, local_enemy.left, local_enemy.right, player.instance, local_enemy.move_speed, local_enemy.dmg, local_enemy.attack_speed, local_enemy.drop, False, local_enemy, local_enemy.boss, local_enemy.name)
                         global_id += 1
         
             #difficulty = player.instance.difficulty + random.randint(-2, 2)
@@ -268,7 +279,10 @@ class Main:
                         bullet.instance.objects.remove(bullet)
                         old.append(bullet)
                         collison.hp -= bullet.dmg
-                        temp = round(collison.hp / collison.max_hp * 50)
+                        if not collison.boss: 
+                            temp = round(collison.hp / collison.max_hp * 50)
+                        else:
+                            temp = round(collison.hp / collison.max_hp * 300)
                         collison.hp_bar.width = temp
                         if random.randint(1, 3) == 1:
                             for i in range(random.randint(2, 4)):
@@ -301,11 +315,13 @@ class Main:
             if self.rect.colliderect(player.rect) == False:
                 if self.rect.x > player.rect.x:
                     self.rect.x -= self.move_speed
-                    self.hp_bar.x -= self.move_speed
+                    if not self.boss:
+                        self.hp_bar.x -= self.move_speed
                     self.image = self.left
                 else:
                     self.rect.x += self.move_speed
-                    self.hp_bar.x += self.move_speed
+                    if not self.boss:
+                        self.hp_bar.x += self.move_speed
                     self.image = self.right
             elif self.rect.colliderect(player.rect):
                 if self.attack_time == 0:
@@ -313,7 +329,8 @@ class Main:
                     self.attack_time = self.attack_speed
             else:
                 self.rect.y = 175
-                self.hp_bar.y = 175
+                if not self.boss:
+                    self.hp_bar.y = 175
 class Bullet:
     def __init__(self, angle, speed, pos, instance, image, dmg, attacker):
         self.attacker = attacker
@@ -344,11 +361,11 @@ mini_gun = Weapon(40, 10, pygame.image.load("graphics/mini.png"), True, world, T
 health1 = Health(30, pygame.image.load("graphics/health1.png"), True, world, 0, 0)
 health2 = Health(100, pygame.image.load("graphics/health1.png"), True, world, 0, 0)
 
-enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10], [health1, 15]], True, None)
-enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 15]], True, None)
-cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10], [health1, 25]], True, None)
-elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20], [health1, 100]], True, None)
-thing = Enemy(500, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/thing_left.png"), pygame.image.load("graphics/thing_right.png"), world, 1, 40, 140, [[pistol, 5], [rifle, 10], [mini_gun, 40], [health2, 100]], True, None)
+enemy1 = Enemy(30, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/enemy_left.png"), pygame.image.load("graphics/enemy_right.png"), world, 1, 10, 100, [[sniper, 15], [rifle, 10], [health1, 15]], True, None, False, "AHHHH")
+enemy2 = Enemy(15, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/snail_left.png"), pygame.image.load("graphics/snail_right.png"), world, 2, 5, 80, [[pistol, 10], [rifle, 5], [mini_gun, 3], [health1, 15]], True, None, False, "Snail")
+cow = Enemy(55, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/cow_left.png"), pygame.image.load("graphics/cow_right.png"), world, 1, 10, 100, [[mini_gun, 15], [rifle, 10], [health1, 25]], True, None, False, "Cow")
+elephant = Enemy(120, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/elephant_left.png"), pygame.image.load("graphics/elephant_right.png"), world, 1, 30, 140, [[pistol, 5], [rifle, 10], [mini_gun, 20], [health1, 100]], True, None, False, "Elephant")
+thing = Enemy(500, 200 if random.randint(1, 2) == 1 else 1200, 475, pygame.image.load("graphics/thing_left.png"), pygame.image.load("graphics/thing_right.png"), world, 1, 40, 140, [[pistol, 5], [rifle, 10], [mini_gun, 40], [health2, 100]], True, None, True, "Thing")
 
 
 
@@ -357,7 +374,7 @@ wave2 = Wave(2, [[enemy2, 1, 40], [enemy1, 41, 85], [cow, 86, 100]], 3000, [])
 wave3 = Wave(3, [[enemy2, 1, 40], [enemy1, 41, 80], [cow, 81, 100]], 3000, [[elephant, 1]])
 wave4 = Wave(4, [[enemy2, 1, 34], [enemy1, 35, 70], [cow, 71, 95], [elephant, 96, 100]], 4000, [])
 wave5 = Wave(5, [[enemy2, 1, 30], [enemy1, 31, 65], [cow, 66, 92], [elephant, 93, 100]], 4000, [])
-wave6 = Wave(6, [[enemy2, 1, 20], [enemy1, 21, 40], [cow, 41, 87], [elephant, 88, 100]], 4200, [])
+wave6 = Wave(6, [[enemy2, 1, 20], [enemy1, 21, 40], [cow, 41, 87], [elephant, 88, 100]], 4200, [[thing, 1]])
 
 current_wave = wave1
 
@@ -373,10 +390,14 @@ def move_player(xy, plus_minus):
         if x.__class__ == Tile or x.__class__ == Weapon or x.__class__ == Enemy or x.__class__ == Blood or x.__class__ == Health:
             if xy == "x" and plus_minus == "plus": 
                 x.rect.x += move_speed
-                if x.__class__ == Enemy: x.hp_bar.x += move_speed
+                if x.__class__ == Enemy:
+                    if not x.boss:
+                        x.hp_bar.x += move_speed
             if xy == "x" and plus_minus == "minus":
                 x.rect.x -= move_speed
-                if x.__class__ == Enemy: x.hp_bar.x -= move_speed
+                if x.__class__ == Enemy:
+                    if not x.boss:
+                        x.hp_bar.x -= move_speed
     move = False
     for x in objects:
         if x.__class__ == Tile and x.rect.colliderect(player.rect) and x in player.instance.objects:
